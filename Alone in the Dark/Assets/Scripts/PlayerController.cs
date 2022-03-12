@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -7,52 +8,188 @@ public class PlayerController : MonoBehaviour
 {
     public float speed = 6.0f;
     public Text scoreText;
-    public GameObject restart, exitButton, EndTextObject, SubTextObject, SecretPassage;
+    public GameObject restart, exitButton, EndTextObject, SubTextObject, SecretPassage, dustParticles;
     public GameObject[] levels;
-
+    public Light mainLight;
     public bool gravitationOn;
 
     private Rigidbody rb;
     private Vector3 moveDirection, tempPosition = Vector3.zero;
     private float gravitationalForce = -1.5f;
-    private int bonusScore, score = 0;
-    private bool hasWaited, waiting, gameOver, pause = false;
-    private float tempScore;
+    private int bonusScore, score, counter = 0;
+    private bool hasWaited, waiting, gameOver, pause, startScene = false;
+    private float tempScore, timeCount, lightBreathingParam;
     private int currentLevel;
     private float windForce;
+    private ParticleSystem particles;
+    private Light lightHalo;
+    private ParticleSystem.EmissionModule emission;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        LevelChange(0);
+        particles = GetComponent<ParticleSystem>();
+        lightHalo = GetComponent<Light>();
+        startScene = true;
+
+        //preparations for startscene
+        foreach (var levelObject in levels)
+        {
+            levelObject.SetActive(false);
+        }
+
+        levels[0].SetActive(true);
+        restart.SetActive(false);
+        exitButton.SetActive(false);
+        SubTextObject.SetActive(false);
+
+        emission = particles.emission;
+        lightHalo.intensity = 0f; //1 final
+        mainLight.intensity = 0f; //1 final
+        emission.rateOverTime = 0; //30 final
+        dustParticles.SetActive(false);
+        scoreText.text = "";
+        EndTextObject.SetActive(true);
+        SubTextObject.SetActive(true);
+        EndTextObject.GetComponent<Text>().color = Color.grey;
+        SubTextObject.GetComponent<Text>().color = Color.grey;
+        EndTextObject.GetComponent<Text>().text = "At the beginning of time,";
+        SubTextObject.GetComponent<Text>().text = "there was nothing";
+        StartCoroutine(DimText(EndTextObject.GetComponent<Text>()));
+        StartCoroutine(DimText(SubTextObject.GetComponent<Text>()));
     }
 
 
     void Update()
     {
-        moveDirection = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0.0f);
-        moveDirection *= speed;
-        Cursor.visible = waiting || pause || gameOver;
-
-        if (Mathf.Abs((transform.position - tempPosition).magnitude) > 3f)
+        if (startScene)
         {
-            tempPosition = transform.position;
-            score += 1;
+            timeCount += Time.deltaTime;
+            var mainText = EndTextObject.GetComponent<Text>();
+            if (timeCount > 3)
+            {
+                switch (counter)
+                {
+                    case 0:
+                        SubTextObject.SetActive(false);
+                        EndTextObject.SetActive(false);
+                        break;
+                    case 1:
+                        particles.Emit(20);
+                        lightHalo.intensity = 0.15f; 
+                        mainLight.intensity = 0.15f;
+                        break;
+                    case 2:
+                        EndTextObject.SetActive(true);
+                        StartCoroutine(DimText(mainText));
+                        mainText.text = "But out of the darkness";
+                        break;
+                    case 3:
+                        EndTextObject.SetActive(false);
+                        break;
+                    case 4:
+                        particles.Emit(100);
+                        lightHalo.intensity = 0.3f; 
+                        mainLight.intensity = 0.3f;
+                        break;
+                    case 5:
+                        EndTextObject.SetActive(true);
+                        StartCoroutine(DimText(mainText));
+                        mainText.text = "Suddenly a wild light appeared!";
+                        break;
+                    case 6:
+                        EndTextObject.SetActive(false);
+                        particles.Emit(1000);
+                        lightHalo.intensity = 0.4f; 
+                        mainLight.intensity = 0.4f;
+                        emission.rateOverTime = 30;
+                        break;
+                    case 8:
+                        mainText.color = Color.red;
+                        SubTextObject.GetComponent<Text>().color = Color.grey;
+                        startScene = false;
+                        dustParticles.SetActive(true);
+                        LevelChange(0);
+                        break;
+                }
+                counter++;
+                timeCount = 0;
+            }
+
+            if (lightHalo.intensity >= 0.4f && lightHalo.intensity <= 1f)
+            {
+                mainLight.intensity += 0.005f;
+                lightHalo.intensity += 0.005f;
+            }
+            else if (lightHalo.intensity < 0.4f)
+            {
+                mainLight.intensity -= 0.005f;
+                lightHalo.intensity -= 0.005f;
+            }
+        }
+        else
+        {
+            //breathing effect
+            if (lightHalo.intensity > 1.2f)
+            {
+                lightBreathingParam = -0.01f;
+            } else if (lightHalo.intensity < 0.8f)
+            {
+                lightBreathingParam = 0.01f;
+            }
+            lightHalo.intensity += lightBreathingParam;
+            
+            
+            moveDirection = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0.0f);
+            moveDirection *= speed;
+            Cursor.visible = waiting || pause || gameOver;
+
+            if (Mathf.Abs((transform.position - tempPosition).magnitude) > 3f)
+            {
+                tempPosition = transform.position;
+                score += 1;
+            }
+
+            scoreText.text = "Score: " + (score + bonusScore);
+
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                gravitationOn = !gravitationOn;
+            }
+
+            if (waiting)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1))
+                {
+                    LevelChange(0);
+                }
+
+                if (Input.GetKeyDown(KeyCode.Alpha2))
+                {
+                    LevelChange(1);
+                }
+
+                if (Input.GetKeyDown(KeyCode.Alpha3))
+                {
+                    LevelChange(2);
+                }
+
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    waiting = false;
+                    EndTextObject.SetActive(false);
+                    SubTextObject.SetActive(false);
+                    Time.timeScale = 1;
+                }
+            }
+
+            if (gameOver && (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return)))
+            {
+                Restart();
+            }
         }
 
-        scoreText.text = "Score: " + (score + bonusScore);
-
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            gravitationOn = !gravitationOn;
-        }
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            ScreenCapture.CaptureScreenshot("screenshot.png");
-        }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (!gameOver && !waiting && Input.GetKeyDown(KeyCode.Escape))
         {
             if (pause)
             {
@@ -71,36 +208,21 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (waiting)
+        if (Input.GetKeyDown(KeyCode.P))
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-            {
-                LevelChange(0);
-            }
-
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                LevelChange(1);
-            }
-
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                LevelChange(2);
-            }
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                waiting = false;
-                EndTextObject.SetActive(false);
-                SubTextObject.SetActive(false);
-                Time.timeScale = 1;
-            }
+            ScreenCapture.CaptureScreenshot("screenshot.png");
         }
+    }
 
-        if (gameOver && (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return)))
+    IEnumerator DimText(Text textToDim)
+    {
+        var color = textToDim.color;
+        color.a = 1f;
+        while (color.a > 0)
         {
-            Restart();
+            textToDim.color = new Color(color.r, color.g, color.b, color.a - 1/(3/Time.deltaTime));
         }
+        yield return null;
     }
 
     void FixedUpdate()
@@ -116,7 +238,7 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.AddForce(moveDirection, ForceMode.Acceleration);
-        rb.AddForce(-rb.velocity * 0.8f, ForceMode.Acceleration); //brake after release of key
+        rb.AddForce(-rb.velocity * 0.8f, ForceMode.Acceleration); //breaking force
         rb.AddForce(new Vector3(windForce, 0f, 0f), ForceMode.Acceleration);
 
         if (gravitationOn)
