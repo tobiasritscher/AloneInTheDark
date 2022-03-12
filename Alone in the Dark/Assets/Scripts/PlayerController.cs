@@ -76,7 +76,7 @@ public class PlayerController : MonoBehaviour
                         break;
                     case 1:
                         particles.Emit(20);
-                        lightHalo.intensity = 0.15f; 
+                        lightHalo.intensity = 0.15f;
                         mainLight.intensity = 0.15f;
                         break;
                     case 2:
@@ -89,7 +89,7 @@ public class PlayerController : MonoBehaviour
                         break;
                     case 4:
                         particles.Emit(100);
-                        lightHalo.intensity = 0.3f; 
+                        lightHalo.intensity = 0.3f;
                         mainLight.intensity = 0.3f;
                         break;
                     case 5:
@@ -100,7 +100,7 @@ public class PlayerController : MonoBehaviour
                     case 6:
                         EndTextObject.SetActive(false);
                         particles.Emit(1000);
-                        lightHalo.intensity = 0.4f; 
+                        lightHalo.intensity = 0.4f;
                         mainLight.intensity = 0.4f;
                         emission.rateOverTime = 30;
                         break;
@@ -112,6 +112,7 @@ public class PlayerController : MonoBehaviour
                         LevelChange(0);
                         break;
                 }
+
                 counter++;
                 timeCount = 0;
             }
@@ -133,13 +134,15 @@ public class PlayerController : MonoBehaviour
             if (lightHalo.intensity > 1.2f)
             {
                 lightBreathingParam = -0.01f;
-            } else if (lightHalo.intensity < 0.8f)
+            }
+            else if (lightHalo.intensity < 0.8f)
             {
                 lightBreathingParam = 0.01f;
             }
+
             lightHalo.intensity += lightBreathingParam;
-            
-            
+
+
             moveDirection = new Vector3(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"), 0.0f);
             moveDirection *= speed;
             Cursor.visible = waiting || pause || gameOver;
@@ -216,13 +219,13 @@ public class PlayerController : MonoBehaviour
 
     IEnumerator DimText(Text textToDim)
     {
-        var color = textToDim.color;
-        color.a = 1f;
-        while (color.a > 0)
+        Color c = textToDim.color;
+        for (float alpha = 1f; alpha >= 0; alpha -= 1 / (3 / Time.deltaTime))
         {
-            textToDim.color = new Color(color.r, color.g, color.b, color.a - 1/(3/Time.deltaTime));
+            c.a = alpha;
+            textToDim.color = c;
+            yield return null;
         }
-        yield return null;
     }
 
     void FixedUpdate()
@@ -290,12 +293,12 @@ public class PlayerController : MonoBehaviour
 
         if (other.CompareTag("WindRight"))
         {
-            windForce = 1;
+            windForce = 1.5f;
         }
 
         if (other.CompareTag("WindLeft"))
         {
-            windForce = -1;
+            windForce = -1.5f;
         }
     }
 
