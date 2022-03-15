@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
     private ParticleSystem particles;
     private Light lightHalo;
     private ParticleSystem.EmissionModule emission;
+    private Coroutine coMain, coSub;
 
     void Start()
     {
@@ -55,8 +56,8 @@ public class PlayerController : MonoBehaviour
         SubTextObject.GetComponent<Text>().color = Color.grey;
         EndTextObject.GetComponent<Text>().text = "At the beginning of time,";
         SubTextObject.GetComponent<Text>().text = "there was nothing";
-        StartCoroutine(DimText(EndTextObject.GetComponent<Text>()));
-        StartCoroutine(DimText(SubTextObject.GetComponent<Text>()));
+        coMain = StartCoroutine(DimText(EndTextObject.GetComponent<Text>()));
+        coSub = StartCoroutine(DimText(SubTextObject.GetComponent<Text>()));
     }
 
 
@@ -81,7 +82,7 @@ public class PlayerController : MonoBehaviour
                         break;
                     case 2:
                         EndTextObject.SetActive(true);
-                        StartCoroutine(DimText(mainText));
+                        coMain = StartCoroutine(DimText(mainText));
                         mainText.text = "But out of the darkness";
                         break;
                     case 3:
@@ -94,7 +95,7 @@ public class PlayerController : MonoBehaviour
                         break;
                     case 5:
                         EndTextObject.SetActive(true);
-                        StartCoroutine(DimText(mainText));
+                        coMain = StartCoroutine(DimText(mainText));
                         mainText.text = "Suddenly a wild light appeared!";
                         break;
                     case 6:
@@ -105,10 +106,6 @@ public class PlayerController : MonoBehaviour
                         emission.rateOverTime = 30;
                         break;
                     case 8:
-                        mainText.color = Color.red;
-                        SubTextObject.GetComponent<Text>().color = Color.grey;
-                        startScene = false;
-                        dustParticles.SetActive(true);
                         LevelChange(0);
                         break;
                 }
@@ -126,6 +123,13 @@ public class PlayerController : MonoBehaviour
             {
                 mainLight.intensity -= 0.005f;
                 lightHalo.intensity -= 0.005f;
+            }
+            
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                StopCoroutine(coMain);
+                StopCoroutine(coSub);
+                LevelChange(0);
             }
         }
         else
@@ -329,6 +333,14 @@ public class PlayerController : MonoBehaviour
         levels[level].SetActive(true);
         restart.SetActive(false);
         exitButton.SetActive(false);
+        
+        startScene = false;
+        lightHalo.intensity = 1f;
+        mainLight.intensity = 1f;
+        EndTextObject.GetComponent<Text>().color = Color.red;
+        SubTextObject.GetComponent<Text>().color = Color.grey;
+        dustParticles.SetActive(true);
+        emission.rateOverTime = 30;
 
         gravitationOn = level > 0;
 
