@@ -465,3 +465,17 @@ crashlytics-build.properties
 # End of https://www.toptal.com/developers/gitignore/api/unity,csharp
 /Virtual-Lab/.idea
 *.csv
+
+### Project-specific ###
+# The C# template's NuGet rule ("**/[Pp]ackages/*") above also hides Unity's own Packages
+# folder, so the package manifest never reached the repo and a fresh clone resolved whatever
+# package versions happened to be cached locally. These two files must be tracked.
+!**/[Pp]ackages/manifest.json
+!**/[Pp]ackages/packages-lock.json
+
+# JetBrains project files, which carry local paths in workspace.xml.
+.idea/
+
+# Screen recordings and gameplay captures. Keep them out of the repo, they are tens of MB each.
+*.mp4
+*.mov

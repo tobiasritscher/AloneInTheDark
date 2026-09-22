@@ -1,0 +1,20 @@
+# Unity serialises scenes, prefabs and assets as YAML. Marking them text lets git diff them
+# and lets Unity's own merge tool (Smart Merge / unityyamlmerge) resolve conflicts.
+*.unity   text eol=lf merge=unityyamlmerge diff
+*.prefab  text eol=lf merge=unityyamlmerge diff
+*.asset   text eol=lf merge=unityyamlmerge diff
+*.mat     text eol=lf merge=unityyamlmerge diff
+*.meta    text eol=lf merge=unityyamlmerge diff
+*.cs      text eol=lf diff=csharp
+*.txt     text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+
+# Binary assets, so git never attempts a line merge on them.
+*.png  binary
+*.jpg  binary
+*.wav  binary
+*.mp3  binary
+*.ogg  binary
+*.fbx  binary
+*.mp4  binary

@@ -463,3 +463,13 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # End of https://www.toptal.com/developers/gitignore/api/unity,csharp
+
+### Project-specific ###
+# The C# template's NuGet rule ("**/[Pp]ackages/*") above also hides Unity's own Packages
+# folder. This .gitignore is the deeper one, so the negation has to live here as well as in
+# the repository root, otherwise the package manifest never reaches the repo.
+!**/[Pp]ackages/manifest.json
+!**/[Pp]ackages/packages-lock.json
+
+# JetBrains project files, which carry local paths in workspace.xml.
+.idea/
