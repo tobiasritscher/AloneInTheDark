@@ -398,9 +398,10 @@ public class PlayerController : MonoBehaviour
             ShowText(parts[0], HintColor, parts[1], HintColor);
             SetAlpha(1f);
 
-            particles.Emit(bursts[i]);
-            sfx.Play("pickup", 0.4f, 0.7f + 0.25f * i);
-            StartCoroutine(RampLight(lightSteps[i], 1.2f));
+            int step = Mathf.Min(i, lightSteps.Length - 1);
+            particles.Emit(bursts[step]);
+            sfx.Play("pickup", 0.4f, 0.7f + 0.25f * step);
+            StartCoroutine(RampLight(lightSteps[step], 1.2f));
 
             yield return FadeText(1f, 0f, 2.6f);
             HideText();
@@ -719,6 +720,18 @@ public class PlayerController : MonoBehaviour
         ShowButton(playButton, "Endless", () => StartMode(GameMode.Endless, Random.Range(1, int.MaxValue)));
         ShowButton(altButton, "Menu", GoToMenu);
         pauseButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>Referenced by name from GameScene.unity. Kept so the scene stays resolvable.</summary>
+    public void Restart()
+    {
+        Retry();
+    }
+
+    /// <summary>Referenced by name from GameScene.unity. Kept so the scene stays resolvable.</summary>
+    public void exitGame()
+    {
+        Quit();
     }
 
     /// <summary>One tap, no scene reload. Should feel like it never left.</summary>
