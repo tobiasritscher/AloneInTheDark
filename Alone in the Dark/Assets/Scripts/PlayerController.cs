@@ -214,7 +214,7 @@ public class PlayerController : MonoBehaviour
         }
 
         var move = moveInput * speed;
-        var velocity = rb.velocity;
+        var velocity = rb.linearVelocity;
 
         // Cap how fast input can push you, but never take away the ability to steer back.
         // The original killed the whole axis once you were over the cap, which meant wind or a
@@ -551,7 +551,7 @@ public class PlayerController : MonoBehaviour
         Enter(State.Playing);
         Time.timeScale = 1f;
         rb.isKinematic = false;
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         lastScorePosition = transform.position;
         GameSave.Runs = GameSave.Runs + 1;
 
@@ -626,7 +626,7 @@ public class PlayerController : MonoBehaviour
     {
         GameInput.ResetDrag();
         moveInput = Vector2.zero;
-        rb.velocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
         transform.position = Vector3.zero;
